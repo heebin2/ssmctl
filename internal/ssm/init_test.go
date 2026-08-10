@@ -13,8 +13,8 @@ func TestGetNameTag(t *testing.T) {
 			inst: EC2Instance{
 				InstanceID: "i-123",
 				Tags: []struct {
-					Key   string
-					Value string
+					Key   string `json:"Key"`
+					Value string `json:"Value"`
 				}{
 					{Key: "Name", Value: "my-server"},
 					{Key: "Environment", Value: "prod"},
@@ -27,8 +27,8 @@ func TestGetNameTag(t *testing.T) {
 			inst: EC2Instance{
 				InstanceID: "i-123",
 				Tags: []struct {
-					Key   string
-					Value string
+					Key   string `json:"Key"`
+					Value string `json:"Value"`
 				}{
 					{Key: "Environment", Value: "prod"},
 				},
