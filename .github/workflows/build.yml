@@ -5,13 +5,15 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          node-version: 24
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
@@ -26,8 +28,6 @@ jobs:
         arch: [arm64, amd64]
     steps:
       - uses: actions/checkout@v4
-        with:
-          node-version: 24
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
@@ -46,13 +46,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          node-version: 24
       - uses: actions/download-artifact@v4
         with:
           path: binaries
@@ -68,3 +63,18 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Publish to GitHub Packages
+        run: |
+          go install github.com/${{ github.repository }}/cmd@${{ github.ref_name }}
+        env:
+          GOPROXY: direct
+          GOSUMDB: off
