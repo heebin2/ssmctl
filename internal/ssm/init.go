@@ -11,9 +11,11 @@ import (
 )
 
 type EC2Instance struct {
-	InstanceID   string `json:"InstanceId"`
-	State        string `json:"State.Name"`
-	Tags         []struct {
+	InstanceID string `json:"InstanceId"`
+	State      struct {
+		Name string `json:"Name"`
+	} `json:"State"`
+	Tags []struct {
 		Key   string `json:"Key"`
 		Value string `json:"Value"`
 	} `json:"Tags"`
@@ -36,12 +38,12 @@ func InitConfig(path string) error {
 	}
 
 	cfg := &Config{
-		Global: GlobalConfig{User: "ec2-user"},
+		Global:    GlobalConfig{User: "ec2-user"},
 		Instances: make(map[string]InstanceConfig),
 	}
 
 	for _, inst := range instances {
-		if inst.State != "running" {
+		if inst.State.Name != "running" {
 			continue
 		}
 
@@ -74,7 +76,6 @@ func InitConfig(path string) error {
 func fetchEC2Instances() ([]EC2Instance, error) {
 	cmd := exec.Command(
 		"aws", "ec2", "describe-instances",
-		"--query", "Reservations[*].Instances[*].[InstanceId,State.Name,Tags[]]",
 		"--output", "json",
 	)
 
@@ -83,28 +84,12 @@ func fetchEC2Instances() ([]EC2Instance, error) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("aws ec2 describe-instances: %w", err)
+		return nil, fmt.Errorf("aws cli: %w", err)
 	}
 
 	var resp EC2Response
-	// Reconstruct the response from the flattened query output
-	rawData := out.String()
-
-	// Use full describe-instances output instead
-	cmd = exec.Command(
-		"aws", "ec2", "describe-instances",
-		"--output", "json",
-	)
-	out.Reset()
-	cmd.Stdout = &out
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("aws ec2 describe-instances: %w", err)
-	}
-
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
-		return nil, fmt.Errorf("parse aws response: %w", err)
+		return nil, fmt.Errorf("parse response: %w", err)
 	}
 
 	var instances []EC2Instance
