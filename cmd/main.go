@@ -14,7 +14,7 @@ type command int
 const (
 	cmdInit command = iota
 	cmdList
-	cmdStart
+	cmdConnect // connect to instance (ssmctl <instance-name>)
 )
 
 func main() {
@@ -55,7 +55,7 @@ func main() {
 	switch cmd {
 	case cmdList:
 		ssm.PrintList(cfg)
-	case cmdStart:
+	case cmdConnect:
 		if err := ssm.Start(cfg, arg); err != nil {
 			exit(fmt.Sprintf("error: %v", err))
 		}
@@ -69,7 +69,8 @@ func parseCommand(arg string) command {
 	case "list":
 		return cmdList
 	default:
-		return cmdStart
+		// any other argument is treated as instance name
+		return cmdConnect
 	}
 }
 
