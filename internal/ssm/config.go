@@ -103,9 +103,9 @@ func (c *Config) listInstances() []instance {
 }
 
 func PrintList(cfg *Config) {
-	fmt.Printf("%-40s %-20s %s\n", "NAME", "TARGET", "USER")
+	fmt.Printf("%-50s %-20s %s\n", "NAME", "TARGET", "USER")
 	for _, inst := range cfg.listInstances() {
-		fmt.Printf("%-40s %-20s %s\n", inst.name, inst.target, inst.user)
+		fmt.Printf("%-50s %-20s %s\n", inst.name, inst.target, inst.user)
 	}
 }
 
