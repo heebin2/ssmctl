@@ -1,0 +1,125 @@
+package ssm
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+
+	"gopkg.in/yaml.v3"
+)
+
+type EC2Instance struct {
+	InstanceID   string `json:"InstanceId"`
+	State        string `json:"State.Name"`
+	Tags         []struct {
+		Key   string `json:"Key"`
+		Value string `json:"Value"`
+	} `json:"Tags"`
+}
+
+type EC2Response struct {
+	Reservations []struct {
+		Instances []EC2Instance `json:"Instances"`
+	} `json:"Reservations"`
+}
+
+func InitConfig(path string) error {
+	instances, err := fetchEC2Instances()
+	if err != nil {
+		return fmt.Errorf("fetch ec2 instances: %w", err)
+	}
+
+	if len(instances) == 0 {
+		return fmt.Errorf("no ec2 instances found")
+	}
+
+	cfg := &Config{
+		Global: GlobalConfig{User: "ec2-user"},
+		Instances: make(map[string]InstanceConfig),
+	}
+
+	for _, inst := range instances {
+		if inst.State != "running" {
+			continue
+		}
+
+		name := getNameTag(inst)
+		if name == "" {
+			name = inst.InstanceID
+		}
+
+		cfg.Instances[name] = InstanceConfig{
+			Target: inst.InstanceID,
+		}
+	}
+
+	if len(cfg.Instances) == 0 {
+		return fmt.Errorf("no running ec2 instances found")
+	}
+
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal yaml: %w", err)
+	}
+
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
+	return nil
+}
+
+func fetchEC2Instances() ([]EC2Instance, error) {
+	cmd := exec.Command(
+		"aws", "ec2", "describe-instances",
+		"--query", "Reservations[*].Instances[*].[InstanceId,State.Name,Tags[]]",
+		"--output", "json",
+	)
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("aws ec2 describe-instances: %w", err)
+	}
+
+	var resp EC2Response
+	// Reconstruct the response from the flattened query output
+	rawData := out.String()
+
+	// Use full describe-instances output instead
+	cmd = exec.Command(
+		"aws", "ec2", "describe-instances",
+		"--output", "json",
+	)
+	out.Reset()
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("aws ec2 describe-instances: %w", err)
+	}
+
+	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
+		return nil, fmt.Errorf("parse aws response: %w", err)
+	}
+
+	var instances []EC2Instance
+	for _, res := range resp.Reservations {
+		instances = append(instances, res.Instances...)
+	}
+
+	return instances, nil
+}
+
+func getNameTag(inst EC2Instance) string {
+	for _, tag := range inst.Tags {
+		if tag.Key == "Name" {
+			return tag.Value
+		}
+	}
+	return ""
+}
