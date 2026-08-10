@@ -1,6 +1,6 @@
 # ssmctl
 
-AWS SSM 세션을 `.ssm.yml` 설정으로 간편하게 실행하는 Go CLI.
+AWS SSM 세션을 `~/.ssm.yml` 설정으로 간편하게 실행하는 Go CLI.
 
 ```bash
 ssmctl my-instance
@@ -14,7 +14,7 @@ go install github.com/heebin2/ssmctl/cmd@latest
 
 ## 설정
 
-프로젝트 루트에 `.ssm.yml` 생성:
+홈 디렉터리에 `~/.ssm.yml` 생성:
 
 ```yaml
 global:
@@ -36,7 +36,7 @@ ssmctl my-instance    # my-instance에 접속
 ```
 
 옵션:
-- `-config path`: 설정 파일 경로 (기본값: `.ssm.yml`)
+- `-config path`: 설정 파일 경로 (기본값: `~/.ssm.yml`)
 
 ## 구현
 

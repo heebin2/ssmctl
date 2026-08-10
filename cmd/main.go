@@ -17,8 +17,14 @@ const (
 )
 
 func main() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		exit("error: cannot determine home directory")
+	}
+	defaultConfig := filepath.Join(homeDir, ".ssm.yml")
+
 	var cfgPath string
-	flag.StringVar(&cfgPath, "config", ".ssm.yml", "path to config file")
+	flag.StringVar(&cfgPath, "config", defaultConfig, "path to config file")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "usage: ssmctl [-config path] <instance-name|list>\n")
 	}
@@ -60,10 +66,10 @@ func handleConfigError(cfgPath string, err error) {
 	fmt.Fprintf(os.Stderr, "     global:\n")
 	fmt.Fprintf(os.Stderr, "       user: ec2-user\n")
 	fmt.Fprintf(os.Stderr, "     instances:\n")
-	fmt.Fprintf(os.Stderr, "       dev-lg-jenkins:\n")
-	fmt.Fprintf(os.Stderr, "         target: i-010566b1d2073afd3\n")
+	fmt.Fprintf(os.Stderr, "       my-instance:\n")
+	fmt.Fprintf(os.Stderr, "         target: i-1234567890abcdef0\n")
 	fmt.Fprintf(os.Stderr, "  2. or use: ssmctl -config <path> list\n\n")
-	
+
 	abs, _ := filepath.Abs(cfgPath)
 	fmt.Fprintf(os.Stderr, "expected location: %s\n", abs)
 	os.Exit(1)
