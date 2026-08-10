@@ -12,7 +12,6 @@ import (
 
 type Config struct {
 	Global    GlobalConfig              `yaml:"global"`
-	User      string                    `yaml:"user"`
 	Instances map[string]InstanceConfig `yaml:"instances"`
 }
 
@@ -22,7 +21,6 @@ type GlobalConfig struct {
 
 type InstanceConfig struct {
 	Target string `yaml:"target"`
-	User   string `yaml:"user"`
 }
 
 type instance struct {
@@ -74,15 +72,9 @@ func (c *Config) resolve(name string) (instance, error) {
 		return instance{}, fmt.Errorf("unknown instance %q (available: %v)", name, available)
 	}
 
-	user := strings.TrimSpace(inst.User)
+	user := strings.TrimSpace(c.Global.User)
 	if user == "" {
-		user = strings.TrimSpace(c.Global.User)
-	}
-	if user == "" {
-		user = strings.TrimSpace(c.User)
-	}
-	if user == "" {
-		return instance{}, fmt.Errorf("instance %q: user not configured (set global.user or instances[%q].user)", name, name)
+		return instance{}, fmt.Errorf("instance %q: user not configured (set global.user)", name)
 	}
 	if !linuxUserPattern.MatchString(user) {
 		return instance{}, fmt.Errorf("instance %q: invalid user %q (must start with letter/underscore)", name, user)
@@ -96,18 +88,11 @@ func (c *Config) listInstances() []instance {
 
 	globalUser := strings.TrimSpace(c.Global.User)
 	if globalUser == "" {
-		globalUser = strings.TrimSpace(c.User)
+		globalUser = "-"
 	}
 
 	for name, inst := range c.Instances {
-		user := strings.TrimSpace(inst.User)
-		if user == "" {
-			user = globalUser
-		}
-		if user == "" {
-			user = "-"
-		}
-		insts = append(insts, instance{name: name, target: inst.Target, user: user})
+		insts = append(insts, instance{name: name, target: inst.Target, user: globalUser})
 	}
 
 	sort.Slice(insts, func(i, j int) bool {

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestConfigResolveInstancePrefersInstanceUser(t *testing.T) {
+func TestConfigResolveInstancePreferGlobalUser(t *testing.T) {
 	tests := []struct {
 		name     string
 		cfg      *Config
@@ -15,18 +15,7 @@ func TestConfigResolveInstancePrefersInstanceUser(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "instance user takes priority",
-			cfg: &Config{
-				Global: GlobalConfig{User: "ec2-user"},
-				Instances: map[string]InstanceConfig{
-					"prod": {Target: "i-123", User: "ubuntu"},
-				},
-			},
-			instName: "prod",
-			wantUser: "ubuntu",
-		},
-		{
-			name: "fallback to global user",
+			name: "use global user",
 			cfg: &Config{
 				Global: GlobalConfig{User: "ec2-user"},
 				Instances: map[string]InstanceConfig{
@@ -35,17 +24,6 @@ func TestConfigResolveInstancePrefersInstanceUser(t *testing.T) {
 			},
 			instName: "prod",
 			wantUser: "ec2-user",
-		},
-		{
-			name: "fallback to top-level user",
-			cfg: &Config{
-				User: "debian",
-				Instances: map[string]InstanceConfig{
-					"prod": {Target: "i-123"},
-				},
-			},
-			instName: "prod",
-			wantUser: "debian",
 		},
 		{
 			name: "no user configured",
