@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -62,15 +63,26 @@ func InitConfig(path string) error {
 		return fmt.Errorf("no running ec2 instances found")
 	}
 
-	// Marshal with compact formatting
-	var buf bytes.Buffer
-	encoder := yaml.NewEncoder(&buf)
-	encoder.SetDefaultFlowStyle(false)
-	if err := encoder.Encode(cfg); err != nil {
+	// Marshal and remove blank lines for compact output
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
 		return fmt.Errorf("marshal yaml: %w", err)
 	}
 
-	if err := os.WriteFile(path, buf.Bytes(), 0o600); err != nil {
+	// Remove blank lines
+	lines := strings.Split(string(data), "\n")
+	var compact []string
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			compact = append(compact, line)
+		}
+	}
+	compactData := []byte(strings.Join(compact, "\n"))
+	if len(compactData) > 0 {
+		compactData = append(compactData, '\n')
+	}
+
+	if err := os.WriteFile(path, compactData, 0o600); err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}
 
