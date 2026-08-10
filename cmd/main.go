@@ -75,7 +75,7 @@ func parseCommand(arg string) command {
 }
 
 func handleConfigError(cfgPath string, err error) {
-	fmt.Fprintf(os.Stderr, "error: config file not found at %s\n", cfgPath)
+	fmt.Fprintf(os.Stderr, "error: %v\n", err)
 	fmt.Fprintf(os.Stderr, "\nhelp:\n")
 	fmt.Fprintf(os.Stderr, "  1. initialize config from AWS EC2 instances:\n")
 	fmt.Fprintf(os.Stderr, "     ssmctl init\n\n")
