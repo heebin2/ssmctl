@@ -3,7 +3,7 @@
 AWS SSM 세션을 `.ssm.yml` 설정으로 간편하게 실행하는 Go CLI.
 
 ```bash
-ssmctl dev-lg-jenkins
+ssmctl my-instance
 ```
 
 ## 설치
@@ -21,18 +21,18 @@ global:
   user: ec2-user
 
 instances:
-  dev-lg-jenkins:
-    target: i-010566b1d2073afd3
-  prod-app:
-    target: i-0abcde1234567890f
+  my-instance:
+    target: i-1234567890abcdef0
+  another-instance:
+    target: i-0abcdef1234567890
     user: ubuntu
 ```
 
 ## 사용
 
 ```bash
-ssmctl list              # 인스턴스 목록 출력
-ssmctl dev-lg-jenkins   # dev-lg-jenkins에 접속
+ssmctl list           # 인스턴스 목록 출력
+ssmctl my-instance    # my-instance에 접속
 ```
 
 옵션:
