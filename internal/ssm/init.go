@@ -52,6 +52,7 @@ func InitConfig(path string) error {
 			name = inst.InstanceID
 		}
 
+		// Use only global user, no per-instance override
 		cfg.Instances[name] = InstanceConfig{
 			Target: inst.InstanceID,
 		}
