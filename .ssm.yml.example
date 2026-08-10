@@ -1,0 +1,6 @@
+global:
+  user: user-name # ex: ec2-user
+
+instances:
+  server-name:
+    target: instance-name #ex: i-**
