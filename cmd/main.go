@@ -14,6 +14,7 @@ type command int
 const (
 	cmdInit command = iota
 	cmdList
+	cmdCompletion
 	cmdConnect // connect to instance (ssmctl <instance-name>)
 )
 
@@ -27,16 +28,22 @@ func main() {
 	var cfgPath string
 	flag.StringVar(&cfgPath, "config", defaultConfig, "path to config file")
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: ssmctl [-config path] <init|list|instance-name>\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: ssmctl [-config path] <init|list|completion|instance-name>\n")
 	}
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		exit("usage: ssmctl [-config path] <init|list|instance-name>")
+		exit("usage: ssmctl [-config path] <init|list|completion|instance-name>")
 	}
 
 	arg := flag.Arg(0)
 	cmd := parseCommand(arg)
+	if cmd == cmdCompletion {
+		if err := writeCompletion(flag.Args()[1:], cfgPath, os.Stdout); err != nil {
+			exit(err.Error())
+		}
+		return
+	}
 
 	switch cmd {
 	case cmdInit:
@@ -68,6 +75,8 @@ func parseCommand(arg string) command {
 		return cmdInit
 	case "list":
 		return cmdList
+	case "completion":
+		return cmdCompletion
 	default:
 		// any other argument is treated as instance name
 		return cmdConnect

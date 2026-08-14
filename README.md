@@ -51,6 +51,18 @@ ssmctl my-instance    # my-instance에 접속
 옵션:
 - `-config path`: 설정 파일 경로 (기본값: `~/.ssm.yml`)
 
+### zsh 자동완성
+
+다음 명령을 한 번 실행해 자동완성을 활성화합니다.
+
+```zsh
+echo 'eval "$(ssmctl completion zsh)"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+이후 `ssmctl <TAB>`을 누르면 명령과 `~/.ssm.yml`의 인스턴스 이름이 표시됩니다.
+`ssmctl -config /path/to/config.yml <TAB>`처럼 별도 설정 파일도 사용할 수 있습니다.
+
 ## 구현
 
 - `cmd/main.go`: 진입점
