@@ -64,12 +64,7 @@ func LoadConfig(path string) (*Config, error) {
 func (c *Config) resolve(name string) (instance, error) {
 	inst, ok := c.Instances[name]
 	if !ok {
-		available := make([]string, 0, len(c.Instances))
-		for n := range c.Instances {
-			available = append(available, n)
-		}
-		sort.Strings(available)
-		return instance{}, fmt.Errorf("unknown instance %q (available: %v)", name, available)
+		return instance{}, fmt.Errorf("unknown instance %q (available: %v)", name, c.InstanceNames())
 	}
 
 	user := strings.TrimSpace(c.Global.User)
@@ -81,6 +76,15 @@ func (c *Config) resolve(name string) (instance, error) {
 	}
 
 	return instance{name: name, target: inst.Target, user: user}, nil
+}
+
+func (c *Config) InstanceNames() []string {
+	names := make([]string, 0, len(c.Instances))
+	for name := range c.Instances {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 func (c *Config) listInstances() []instance {

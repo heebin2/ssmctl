@@ -3,6 +3,7 @@ package ssm
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -91,6 +92,20 @@ func TestConfigListInstancesSorted(t *testing.T) {
 		if insts[i].name != exp {
 			t.Fatalf("position %d: got %s, want %s", i, insts[i].name, exp)
 		}
+	}
+}
+
+func TestConfigInstanceNamesSorted(t *testing.T) {
+	cfg := &Config{Instances: map[string]InstanceConfig{
+		"z-app": {Target: "i-z"},
+		"a-app": {Target: "i-a"},
+		"m-app": {Target: "i-m"},
+	}}
+
+	got := cfg.InstanceNames()
+	want := []string{"a-app", "m-app", "z-app"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("InstanceNames() = %v, want %v", got, want)
 	}
 }
 
